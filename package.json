@@ -9,10 +9,18 @@
     "build:client": "cd client && pnpm build",
     "build:server": "cd server && pnpm build",
     "build": "pnpm run build:client && pnpm run build:server",
-    "start": "cd server && pnpm start"
+    "start": "cd server && pnpm start",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "workspaces": [
     "client",
     "server"
-  ]
+  ],
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  }
 }
