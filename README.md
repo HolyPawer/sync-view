@@ -15,12 +15,12 @@
 - **Frontend:** Svelte + TypeScript + Skeleton UI
 - **Backend:** Node.js + Express + WebSocket
 - **Сборка:** Vite
-- **Пакетный менеджер:** pnpm
+- **Пакетный менеджер:** npm
 
 ## Требования
 
 - Node.js 22+
-- pnpm
+- npm
 
 ## Установка
 
@@ -30,14 +30,14 @@ git clone [url] sync-view
 cd sync-view
 
 # Установить зависимости
-pnpm install
+npm install
 
 # Запустить в режиме разработки
-pnpm dev
+npm dev
 ```
 
 ## Скрипты
 
-- `pnpm dev` - Запуск клиента и сервера в режиме разработки
-- `pnpm build` - Сборка проекта
-- `pnpm start` - Запуск собранного проекта 
+- `npm dev` - Запуск клиента и сервера в режиме разработки
+- `npm build` - Сборка проекта
+- `npm start` - Запуск собранного проекта 
