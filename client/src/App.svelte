@@ -1,14 +1,38 @@
 <script lang="ts">
-  // Your script goes here
+  import { Router, Link, Route } from "svelte-routing";
+  import Home from "./routes/Home.svelte";
+  import About from "./routes/About.svelte";
 </script>
 
-<div class="min-h-screen bg-gray-100 flex items-center justify-center">
-  <div class="bg-white p-8 rounded-lg shadow-md">
-    <h1 class="text-2xl font-bold mb-4">Sync View</h1>
-    <p class="text-gray-600">Client is running successfully!</p>
-  </div>
-</div>
+<Router>
+  <nav>
+    <Link to="/">Главная</Link>
+    <Link to="/about">О проекте</Link>
+  </nav>
+
+  <main>
+    <Route path="/" component={Home} />
+    <Route path="/about" component={About} />
+  </main>
+</Router>
 
 <style>
-  /* Your styles go here */
+  nav {
+    padding: 1rem;
+    background-color: #f8f9fa;
+  }
+
+  nav :global(a) {
+    margin-right: 1rem;
+    color: #333;
+    text-decoration: none;
+  }
+
+  nav :global(a:hover) {
+    text-decoration: underline;
+  }
+
+  main {
+    padding: 2rem;
+  }
 </style> 
