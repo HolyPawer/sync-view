@@ -1,32 +1,53 @@
 import type { ApiResponse } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = 'http://localhost:3000/api';
 
-export async function fetchApi<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
+export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   try {
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
         ...options.headers,
       },
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'API request failed');
+    }
 
-    return {
-      data: data as T,
-      status: response.status,
-      error: !response.ok ? data.error : undefined,
-    };
+    const contentType = response.headers.get('content-type');
+    if (contentType?.includes('application/json')) {
+      return await response.json();
+    }
+
+    return await response.blob();
   } catch (error) {
-    return {
-      data: null as T,
-      status: 500,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    };
+    console.error('API request failed:', error);
+    throw error;
   }
+}
+
+export async function listFiles() {
+  return fetchApi('/files');
+}
+
+export async function getFile(fileName: string) {
+  return fetchApi(`/files/${fileName}`);
+}
+
+export async function uploadFile(fileName: string, file: File) {
+  return fetchApi(`/files/${fileName}`, {
+    method: 'POST',
+    body: file,
+    headers: {
+      'Content-Type': 'application/octet-stream'
+    }
+  });
+}
+
+export async function deleteFile(fileName: string) {
+  return fetchApi(`/files/${fileName}`, {
+    method: 'DELETE'
+  });
 } 

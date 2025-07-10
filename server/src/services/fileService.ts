@@ -14,21 +14,20 @@ export class FileService {
     }
   }
 
-  async readFile(fileName: string): Promise<string> {
+  async readFileBuffer(fileName: string): Promise<Buffer> {
     try {
       const filePath = path.join(this.basePath, fileName);
-      const content = await fs.readFile(filePath, 'utf-8');
-      return content;
+      return await fs.readFile(filePath);
     } catch (error) {
       console.error(`Failed to read file ${fileName}:`, error);
       throw new Error(`Failed to read file ${fileName}`);
     }
   }
 
-  async writeFile(fileName: string, content: string): Promise<void> {
+  async writeFileBuffer(fileName: string, content: Buffer): Promise<void> {
     try {
       const filePath = path.join(this.basePath, fileName);
-      await fs.writeFile(filePath, content, 'utf-8');
+      await fs.writeFile(filePath, content);
     } catch (error) {
       console.error(`Failed to write file ${fileName}:`, error);
       throw new Error(`Failed to write file ${fileName}`);

@@ -22,7 +22,8 @@ async function bootstrap() {
 
   // Middleware
   app.use(cors({ origin: config.corsOrigin }));
-  app.use(express.json());
+  app.use(express.json({ limit: '100mb' }));
+  app.use(express.raw({ limit: '100mb', type: 'application/octet-stream' }));
 
   // Сервисы
   const fileService = new FileService(config.watchPath);

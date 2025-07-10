@@ -1,35 +1,44 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import Button from './Button.svelte';
-  import { fetchApi } from '../lib/api';
 
   const dispatch = createEventDispatcher();
   let fileName: string = '';
-  let fileContent: string = '';
+  let file: File | null = null;
   let error: string | null = null;
   let isLoading: boolean = false;
+  let uploadProgress: number = 0;
 
   async function handleSubmit() {
-    if (!fileName || !fileContent) {
-      error = 'Имя файла и содержимое обязательны';
+    if (!fileName || !file) {
+      error = 'Выберите файл для загрузки';
       return;
     }
 
     isLoading = true;
     error = null;
+    uploadProgress = 0;
 
     try {
-      const response = await fetchApi(`/api/files/${fileName}`, {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`/api/files/${fileName}`, {
         method: 'POST',
-        body: JSON.stringify({ content: fileContent }),
+        body: file,
+        headers: {
+          'Content-Type': 'application/octet-stream'
+        }
       });
 
-      if (response.error) {
-        throw new Error(response.error);
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Ошибка при загрузке файла');
       }
 
       fileName = '';
-      fileContent = '';
+      file = null;
+      uploadProgress = 100;
       dispatch('upload');
     } catch (err) {
       error = err instanceof Error ? err.message : 'Ошибка при загрузке файла';
@@ -40,17 +49,11 @@
 
   function handleFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const selectedFile = input.files?.[0];
     
-    if (file) {
-      fileName = file.name;
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        fileContent = e.target?.result as string;
-      };
-      
-      reader.readAsText(file);
+    if (selectedFile) {
+      fileName = selectedFile.name;
+      file = selectedFile;
     }
   }
 </script>
@@ -87,17 +90,13 @@
     </label>
   </div>
 
-  <div class="form-group">
-    <label>
-      Содержимое:
-      <textarea
-        bind:value={fileContent}
-        placeholder="Введите содержимое файла"
-        rows="5"
-        disabled={isLoading}
-      ></textarea>
-    </label>
-  </div>
+  {#if isLoading}
+    <div class="progress">
+      <div class="progress-bar" style="width: {uploadProgress}%">
+        {uploadProgress}%
+      </div>
+    </div>
+  {/if}
 
   <Button
     type="primary"
@@ -126,8 +125,7 @@
     color: #666;
   }
 
-  input[type="text"],
-  textarea {
+  input[type="text"] {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid var(--secondary-color);
@@ -148,7 +146,19 @@
     margin-bottom: 0.5rem;
   }
 
-  textarea {
-    resize: vertical;
+  .progress {
+    margin-bottom: 1rem;
+    background-color: var(--secondary-color);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 20px;
+    background-color: var(--primary-color);
+    color: white;
+    text-align: center;
+    line-height: 20px;
+    transition: width 0.3s ease;
   }
 </style> 
