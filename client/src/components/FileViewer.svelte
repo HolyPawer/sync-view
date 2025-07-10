@@ -1,106 +1,98 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { getFile } from '../lib/api';
+  import type { FileInfo } from '../types/files';
 
-  export let fileName: string | null = null;
-  let error: string | null = null;
-  let isLoading = false;
-  let videoUrl: string | null = null;
+  export let file: FileInfo | null = null;
 
-  $: if (fileName) {
-    loadFile(fileName);
+  $: fileUrl = file ? `http://localhost:3000/files/${encodeURIComponent(file.name)}` : null;
+  $: isVideo = file?.type.startsWith('video/');
+  $: isImage = file?.type.startsWith('image/');
+  $: isText = file?.type.startsWith('text/') || file?.type === 'application/json';
+
+  let content: string | null = null;
+
+  $: if (file && isText) {
+    fetch(fileUrl!)
+      .then(response => response.text())
+      .then(text => {
+        content = text;
+      })
+      .catch(error => {
+        console.error('Failed to load text content:', error);
+        content = null;
+      });
   } else {
-    videoUrl = null;
+    content = null;
   }
-
-  async function loadFile(name: string) {
-    try {
-      isLoading = true;
-      error = null;
-      const blob = await getFile(name);
-      videoUrl = URL.createObjectURL(blob);
-    } catch (err) {
-      error = err instanceof Error ? err.message : 'Ошибка при загрузке файла';
-      videoUrl = null;
-    } finally {
-      isLoading = false;
-    }
-  }
-
-  onMount(() => {
-    return () => {
-      if (videoUrl) {
-        URL.revokeObjectURL(videoUrl);
-      }
-    };
-  });
 </script>
 
-<div class="file-viewer">
-  <h2>Просмотр файла</h2>
-
-  {#if error}
-    <div class="error">
-      {error}
+<div class="viewer">
+  {#if !file}
+    <div class="placeholder">
+      <p>Выберите файл для просмотра</p>
     </div>
-  {/if}
-
-  {#if isLoading}
-    <div class="loading">Загрузка...</div>
-  {:else if !fileName}
-    <div class="empty">Выберите файл для просмотра</div>
-  {:else if videoUrl}
-    <div class="video-container">
-      <video controls>
-        <source src={videoUrl} type="video/mp4">
-        Ваш браузер не поддерживает воспроизведение видео.
-      </video>
+  {:else if isVideo}
+    <video src={fileUrl} controls>
+      <track kind="captions">
+      Ваш браузер не поддерживает видео
+    </video>
+  {:else if isImage}
+    <img src={fileUrl} alt={file.name} />
+  {:else if isText && content !== null}
+    <pre>{content}</pre>
+  {:else}
+    <div class="unsupported">
+      <p>Предпросмотр не поддерживается для этого типа файлов</p>
+      <p>Тип файла: {file.type}</p>
+      <a href={fileUrl} download={file.name}>Скачать файл</a>
     </div>
   {/if}
 </div>
 
 <style>
-  .file-viewer {
-    border: 1px solid var(--secondary-color);
-    border-radius: 4px;
-    padding: 1rem;
+  .viewer {
     height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .error {
-    color: var(--error-color);
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    border: 1px solid var(--error-color);
-    border-radius: 4px;
-    background-color: #fee2e2;
-  }
-
-  .loading,
-  .empty {
-    color: #666;
-    text-align: center;
-    padding: 1rem;
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .video-container {
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #000;
-    border-radius: 4px;
+    min-height: 400px;
+    background: var(--surface-1);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-1);
     overflow: hidden;
   }
 
-  video {
-    max-width: 100%;
-    max-height: 100%;
+  .placeholder,
+  .unsupported {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-2);
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .unsupported a {
+    color: var(--primary-color);
+    text-decoration: none;
+    margin-top: 1rem;
+  }
+
+  .unsupported a:hover {
+    text-decoration: underline;
+  }
+
+  video,
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  pre {
+    margin: 0;
+    padding: 1rem;
+    overflow: auto;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
   }
 </style> 

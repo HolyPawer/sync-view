@@ -1,154 +1,139 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { listFiles, deleteFile } from '../lib/api';
+  import { files } from '../stores/files';
+  import { wsStatus } from '../stores/websocket';
+  import type { FileInfo } from '../types/files';
   import Button from './Button.svelte';
-  import { createEventDispatcher } from 'svelte';
 
-  const dispatch = createEventDispatcher();
-  let files: string[] = [];
-  let error: string | null = null;
-  let isLoading = true;
-  let selectedFile: string | null = null;
+  let selectedFile: FileInfo | null = null;
 
-  export async function loadFiles() {
-    try {
-      isLoading = true;
-      error = null;
-      files = await listFiles();
-    } catch (err) {
-      error = err instanceof Error ? err.message : 'Ошибка при загрузке списка файлов';
-      files = [];
-    } finally {
-      isLoading = false;
+  const formatSize = (bytes: number): string => {
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let size = bytes;
+    let unitIndex = 0;
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
     }
-  }
 
-  async function handleDelete(fileName: string) {
-    try {
-      await deleteFile(fileName);
-      await loadFiles();
-      if (selectedFile === fileName) {
-        selectedFile = null;
-        dispatch('select', { file: null });
-      }
-    } catch (err) {
-      error = err instanceof Error ? err.message : 'Ошибка при удалении файла';
+    return `${size.toFixed(1)} ${units[unitIndex]}`;
+  };
+
+  const handleDelete = async (file: FileInfo) => {
+    if (confirm(`Удалить файл ${file.name}?`)) {
+      await files.deleteFile(file.name);
     }
-  }
+  };
 
-  function handleSelect(fileName: string) {
-    selectedFile = fileName;
-    dispatch('select', { file: fileName });
-  }
+  const handleSelect = (file: FileInfo) => {
+    selectedFile = file;
+  };
 
-  onMount(loadFiles);
+  onMount(() => {
+    wsStatus.connect();
+  });
 </script>
 
 <div class="file-list">
-  <h2>Файлы</h2>
-
-  {#if error}
-    <div class="error">
-      {error}
+  <div class="header">
+    <h2>Файлы</h2>
+    <div class="connection-status" class:connected={$wsStatus === 'connected'}>
+      {$wsStatus === 'connected' ? 'Подключено' : 'Отключено'}
     </div>
-  {/if}
+  </div>
 
-  {#if isLoading}
-    <div class="loading">Загрузка...</div>
-  {:else if files.length === 0}
-    <div class="empty">Нет доступных файлов</div>
+  {#if $files.length === 0}
+    <p class="no-files">Нет файлов</p>
   {:else}
-    <ul>
-      {#each files as fileName}
-        <li class:selected={selectedFile === fileName}>
-          <button 
-            class="file-button" 
-            on:click={() => handleSelect(fileName)}
-          >
-            {fileName}
-          </button>
-          <div class="actions">
-            <Button type="danger" onClick={() => handleDelete(fileName)}>
-              Удалить
-            </Button>
+    <div class="files">
+      {#each $files as file (file.name)}
+        <div 
+          class="file-item" 
+          class:selected={selectedFile?.name === file.name}
+          on:click={() => handleSelect(file)}
+        >
+          <div class="file-info">
+            <span class="file-name">{file.name}</span>
+            <span class="file-size">{formatSize(file.size)}</span>
           </div>
-        </li>
+          <Button variant="danger" on:click={() => handleDelete(file)}>Удалить</Button>
+        </div>
       {/each}
-    </ul>
+    </div>
   {/if}
 </div>
 
 <style>
   .file-list {
-    border: 1px solid var(--secondary-color);
-    border-radius: 4px;
     padding: 1rem;
+    background: var(--surface-1);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-1);
   }
 
-  .error {
-    color: var(--error-color);
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    border: 1px solid var(--error-color);
-    border-radius: 4px;
-    background-color: #fee2e2;
-  }
-
-  .loading,
-  .empty {
-    color: #666;
-    text-align: center;
-    padding: 1rem;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  li {
+  .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--secondary-color);
-    transition: background-color 0.2s ease;
+    margin-bottom: 1rem;
   }
 
-  li:last-child {
-    border-bottom: none;
+  .connection-status {
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    background: var(--error-color);
+    color: white;
+    font-size: 0.875rem;
   }
 
-  li.selected {
-    background-color: var(--secondary-color);
+  .connection-status.connected {
+    background: var(--success-color);
   }
 
-  .file-button {
-    background: none;
-    border: none;
-    padding: 0.5rem;
-    margin: -0.5rem;
-    font-size: inherit;
-    color: var(--text-color);
-    cursor: pointer;
-    flex-grow: 1;
-    text-align: left;
-    transition: color 0.2s ease;
+  .no-files {
+    text-align: center;
+    color: var(--text-2);
+    font-style: italic;
   }
 
-  .file-button:hover {
-    color: var(--primary-color);
-  }
-
-  .actions {
+  .files {
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
-    opacity: 0;
-    transition: opacity 0.2s ease;
   }
 
-  li:hover .actions {
-    opacity: 1;
+  .file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--surface-2);
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .file-item:hover {
+    background: var(--surface-3);
+  }
+
+  .file-item.selected {
+    background: var(--primary-color-light);
+  }
+
+  .file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .file-name {
+    font-weight: 500;
+  }
+
+  .file-size {
+    font-size: 0.875rem;
+    color: var(--text-2);
   }
 </style> 

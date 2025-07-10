@@ -1,13 +1,12 @@
 <script lang="ts">
-  export let type: 'primary' | 'secondary' | 'danger' = 'primary';
-  export let onClick: () => void;
-  export let disabled: boolean = false;
+  export let variant: 'primary' | 'secondary' | 'danger' = 'primary';
+  export let disabled = false;
 </script>
 
-<button
-  class={type}
-  on:click={onClick}
-  {disabled}
+<button 
+  class={variant} 
+  {disabled} 
+  on:click
 >
   <slot />
 </button>
@@ -16,11 +15,10 @@
   button {
     padding: 0.5rem 1rem;
     border: none;
-    border-radius: 4px;
-    font-size: 1rem;
+    border-radius: 0.25rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
   }
 
   button:disabled {
@@ -29,35 +27,29 @@
   }
 
   .primary {
-    background-color: #3b82f6;
+    background: var(--primary-color);
     color: white;
   }
 
   .primary:hover:not(:disabled) {
-    background-color: #2563eb;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: var(--primary-color-dark);
   }
 
   .secondary {
-    background-color: #e5e7eb;
-    color: #374151;
+    background: var(--surface-2);
+    color: var(--text-1);
   }
 
   .secondary:hover:not(:disabled) {
-    background-color: #d1d5db;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: var(--surface-3);
   }
 
   .danger {
-    background-color: #ef4444;
+    background: var(--error-color);
     color: white;
   }
 
   .danger:hover:not(:disabled) {
-    background-color: #dc2626;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: var(--error-color-dark);
   }
 </style> 

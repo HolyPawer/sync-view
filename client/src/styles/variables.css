@@ -1,0 +1,34 @@
+:root {
+  /* Цвета */
+  --primary-color: #3b82f6;
+  --primary-color-dark: #2563eb;
+  --primary-color-light: #bfdbfe;
+  
+  --error-color: #ef4444;
+  --error-color-dark: #dc2626;
+  
+  --success-color: #22c55e;
+  --success-color-dark: #16a34a;
+  
+  --surface-1: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #f1f5f9;
+  
+  --text-1: #1e293b;
+  --text-2: #64748b;
+  
+  --border-color: #e2e8f0;
+  
+  /* Тени */
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-2: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  
+  /* Анимации */
+  --transition-fast: 0.2s;
+  --transition-normal: 0.3s;
+  
+  /* Размеры */
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 1rem;
+} 
