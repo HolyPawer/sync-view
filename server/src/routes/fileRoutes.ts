@@ -8,6 +8,7 @@ export function createFileRouter(fileController: FileController): Router {
   router.get('/:fileName', fileController.getFile);
   router.put('/:fileName', fileController.updateFile);
   router.delete('/:fileName', fileController.deleteFile);
+  router.post('/:fileName', fileController.uploadFile);
 
   return router;
 } 

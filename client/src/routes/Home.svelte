@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import FileList from '../components/FileList.svelte';
   import FileViewer from '../components/FileViewer.svelte';
+  import FileUpload from '../components/FileUpload.svelte';
   import { fileStore, fetchFiles, fetchFileContent } from '../stores/files';
   import { wsClient } from '../lib/websocket';
 
@@ -31,6 +32,10 @@
   function handleFileSelect({ detail }: CustomEvent<{ file: string }>) {
     fetchFileContent(detail.file);
   }
+
+  function handleUpload() {
+    fetchFiles();
+  }
 </script>
 
 <main>
@@ -47,6 +52,8 @@
       Загрузка...
     </div>
   {/if}
+
+  <FileUpload on:upload={handleUpload} />
 
   <div class="container">
     <div class="files">
