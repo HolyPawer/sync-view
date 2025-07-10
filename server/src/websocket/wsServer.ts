@@ -1,60 +1,80 @@
 import { Server } from 'http';
-import { WebSocket, WebSocketServer } from 'ws';
-import type { WebSocketClient } from '../types';
+import { WebSocketServer, WebSocket } from 'ws';
 import { FileWatcherService } from '../services/fileWatcher';
+
+type FileEvent = {
+  type: 'add' | 'change' | 'unlink';
+  file: string;
+};
 
 export class WsServer {
   private wss: WebSocketServer;
-  private pingInterval: NodeJS.Timeout;
+  private clients: Set<WebSocket> = new Set();
 
   constructor(
-    server: Server,
+    server: Server, 
     private fileWatcher: FileWatcherService,
     private watchPath: string
   ) {
     this.wss = new WebSocketServer({ server });
-    this.setupWebSocketServer();
-    this.pingInterval = this.startPingInterval();
+    this.setupWebSocket();
+    this.setupFileWatcher();
   }
 
-  private setupWebSocketServer() {
-    this.wss.on('connection', (ws: WebSocketClient) => {
-      console.log('New WebSocket connection');
-      
-      ws.isAlive = true;
-      ws.on('pong', () => {
-        ws.isAlive = true;
-      });
-
-      this.fileWatcher.addClient(this.watchPath, ws);
+  private setupWebSocket() {
+    this.wss.on('connection', (ws: WebSocket) => {
+      console.log('Client connected');
+      this.clients.add(ws);
 
       ws.on('close', () => {
-        this.fileWatcher.removeClient(ws);
+        console.log('Client disconnected');
+        this.clients.delete(ws);
       });
 
       ws.on('error', (error) => {
         console.error('WebSocket error:', error);
-        this.fileWatcher.removeClient(ws);
+        this.clients.delete(ws);
       });
     });
   }
 
-  private startPingInterval() {
-    return setInterval(() => {
-      this.wss.clients.forEach((ws: WebSocketClient) => {
-        if (ws.isAlive === false) {
-          this.fileWatcher.removeClient(ws);
-          return ws.terminate();
-        }
-
-        ws.isAlive = false;
-        ws.ping();
+  private setupFileWatcher() {
+    this.fileWatcher.on('add', (file: string) => {
+      this.broadcast({
+        type: 'add',
+        file: this.getRelativePath(file)
       });
-    }, 30000);
+    });
+
+    this.fileWatcher.on('change', (file: string) => {
+      this.broadcast({
+        type: 'change',
+        file: this.getRelativePath(file)
+      });
+    });
+
+    this.fileWatcher.on('unlink', (file: string) => {
+      this.broadcast({
+        type: 'unlink',
+        file: this.getRelativePath(file)
+      });
+    });
   }
 
-  close() {
-    clearInterval(this.pingInterval);
+  private broadcast(event: FileEvent) {
+    const message = JSON.stringify(event);
+    this.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  }
+
+  private getRelativePath(file: string): string {
+    return file.replace(this.watchPath, '').replace(/^[\\/]+/, '');
+  }
+
+  public close() {
     this.wss.close();
   }
 } 

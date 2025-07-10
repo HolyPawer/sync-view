@@ -16,6 +16,7 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@types/chokidar": "^2.1.7",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^20.11.24",
