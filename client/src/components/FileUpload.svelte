@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import Button from './Button.svelte';
+  import { uploadFile } from '../lib/api';
 
   const dispatch = createEventDispatcher();
   let fileName: string = '';
@@ -20,22 +21,7 @@
     uploadProgress = 0;
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch(`/api/files/${fileName}`, {
-        method: 'POST',
-        body: file,
-        headers: {
-          'Content-Type': 'application/octet-stream'
-        }
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Ошибка при загрузке файла');
-      }
-
+      await uploadFile(fileName, file);
       fileName = '';
       file = null;
       uploadProgress = 100;
@@ -54,6 +40,7 @@
     if (selectedFile) {
       fileName = selectedFile.name;
       file = selectedFile;
+      error = null;
     }
   }
 </script>

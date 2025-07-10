@@ -1,74 +1,27 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import FileUpload from '../components/FileUpload.svelte';
   import FileList from '../components/FileList.svelte';
   import FileViewer from '../components/FileViewer.svelte';
-  import FileUpload from '../components/FileUpload.svelte';
-  import { fileStore, fetchFiles, fetchFileContent } from '../stores/files';
-  import { wsClient } from '../lib/websocket';
+  import { onMount } from 'svelte';
 
-  let files: string[] = [];
   let selectedFile: string | null = null;
-  let fileContent: string | null = null;
-  let isLoading: boolean = false;
-  let error: string | null = null;
 
-  fileStore.subscribe(state => {
-    files = state.files;
-    selectedFile = state.selectedFile;
-    fileContent = state.fileContent;
-    isLoading = state.isLoading;
-    error = state.error;
-  });
-
-  onMount(() => {
-    fetchFiles();
-    wsClient.connect();
-  });
-
-  onDestroy(() => {
-    wsClient.disconnect();
-  });
-
-  function handleFileSelect({ detail }: CustomEvent<{ file: string }>) {
-    fetchFileContent(detail.file);
+  function handleFileSelect(event: CustomEvent<{ file: string }>) {
+    selectedFile = event.detail.file;
   }
 
   function handleUpload() {
-    fetchFiles();
+    selectedFile = null;
   }
 </script>
 
 <main>
-  <h1>Sync View</h1>
-  
-  {#if error}
-    <div class="error">
-      {error}
-    </div>
-  {/if}
-
-  {#if isLoading}
-    <div class="loading">
-      Загрузка...
-    </div>
-  {/if}
-
   <FileUpload on:upload={handleUpload} />
-
-  <div class="container">
-    <div class="files">
-      <FileList 
-        {files}
-        {selectedFile}
-        on:select={handleFileSelect}
-      />
-    </div>
-    <div class="viewer">
-      <FileViewer 
-        fileName={selectedFile}
-        content={fileContent || ''}
-      />
-    </div>
+  
+  <div class="content">
+    <FileList on:select={handleFileSelect} />
+    
+    <FileViewer fileName={selectedFile} />
   </div>
 </main>
 
@@ -79,28 +32,16 @@
     padding: 2rem;
   }
 
-  .container {
+  .content {
     display: grid;
     grid-template-columns: 300px 1fr;
     gap: 2rem;
     margin-top: 2rem;
   }
 
-  .error {
-    background-color: var(--error-color);
-    color: white;
-    padding: 1rem;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-  }
-
-  .loading {
-    text-align: center;
-    padding: 1rem;
-    color: #666;
-  }
-
-  .viewer {
-    height: 600px;
+  @media (max-width: 768px) {
+    .content {
+      grid-template-columns: 1fr;
+    }
   }
 </style> 
