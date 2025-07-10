@@ -11,8 +11,7 @@
     try {
       isLoading = true;
       error = null;
-      const response = await listFiles();
-      files = response.data || [];
+      files = await listFiles();
     } catch (err) {
       error = err instanceof Error ? err.message : 'Ошибка при загрузке списка файлов';
       files = [];

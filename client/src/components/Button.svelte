@@ -19,7 +19,7 @@
     border-radius: 4px;
     font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
   }
 
   button:disabled {
@@ -34,6 +34,7 @@
 
   .primary:hover:not(:disabled) {
     background-color: var(--primary-color-dark);
+    transform: translateY(-1px);
   }
 
   .secondary {
@@ -43,14 +44,16 @@
 
   .secondary:hover:not(:disabled) {
     background-color: var(--secondary-color-dark);
+    transform: translateY(-1px);
   }
 
   .danger {
-    background-color: var(--error-color);
+    background-color: #ef4444;
     color: white;
   }
 
   .danger:hover:not(:disabled) {
     background-color: #dc2626;
+    transform: translateY(-1px);
   }
 </style> 

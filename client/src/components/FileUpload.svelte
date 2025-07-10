@@ -25,9 +25,10 @@
       fileName = '';
       file = null;
       uploadProgress = 100;
-      dispatch('upload');
+      dispatch('upload', { success: true });
     } catch (err) {
       error = err instanceof Error ? err.message : 'Ошибка при загрузке файла';
+      dispatch('upload', { success: false });
     } finally {
       isLoading = false;
     }

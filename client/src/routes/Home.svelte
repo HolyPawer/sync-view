@@ -5,13 +5,17 @@
   import { onMount } from 'svelte';
 
   let selectedFile: string | null = null;
+  let fileListComponent: FileList;
 
   function handleFileSelect(event: CustomEvent<{ file: string }>) {
     selectedFile = event.detail.file;
   }
 
-  function handleUpload() {
-    selectedFile = null;
+  function handleUpload(event: CustomEvent<{ success: boolean }>) {
+    if (event.detail.success) {
+      fileListComponent.loadFiles();
+      selectedFile = null;
+    }
   }
 </script>
 
@@ -19,7 +23,10 @@
   <FileUpload on:upload={handleUpload} />
   
   <div class="content">
-    <FileList on:select={handleFileSelect} />
+    <FileList 
+      bind:this={fileListComponent}
+      on:select={handleFileSelect} 
+    />
     
     <FileViewer fileName={selectedFile} />
   </div>
