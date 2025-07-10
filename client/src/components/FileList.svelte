@@ -7,7 +7,7 @@
   let error: string | null = null;
   let isLoading = true;
 
-  async function loadFiles() {
+  export async function loadFiles() {
     try {
       isLoading = true;
       error = null;

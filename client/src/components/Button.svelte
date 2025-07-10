@@ -18,6 +18,7 @@
     border: none;
     border-radius: 4px;
     font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
   }
@@ -28,23 +29,25 @@
   }
 
   .primary {
-    background-color: var(--primary-color);
+    background-color: #3b82f6;
     color: white;
   }
 
   .primary:hover:not(:disabled) {
-    background-color: var(--primary-color-dark);
+    background-color: #2563eb;
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .secondary {
-    background-color: var(--secondary-color);
-    color: var(--text-color);
+    background-color: #e5e7eb;
+    color: #374151;
   }
 
   .secondary:hover:not(:disabled) {
-    background-color: var(--secondary-color-dark);
+    background-color: #d1d5db;
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .danger {
@@ -55,5 +58,6 @@
   .danger:hover:not(:disabled) {
     background-color: #dc2626;
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 </style> 
